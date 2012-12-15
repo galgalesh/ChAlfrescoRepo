@@ -1,36 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <packages>
 	<package>
-		<name>Fedora Commons</name>
-		<code>fedora</code>
-		<context>common\extensions\external_repository_manager\implementation\fedora</context>
+		<name>Alfresco</name>
+		<code>alfresco</code>
+		<context>common\extensions\external_repository_manager\implementation\alfresco</context>
 		<section>external_repository_manager</section>
 		<category>document</category>
 		<authors>
 			<author>
-				<name>Nicolas Rod</name>
-				<email>nicolas.rod@unige.ch</email>
-				<company>Université de Genève</company>
+				<name>Merlijn Sebrechts</name>
+				<email>merlijn.sebrechts@kahosl.be</email>
+				<company>KaHo Sint-Lieven Gent</company>
 			</author>
 			<author>
-				<name>Laurent Opprecht</name>
-				<email>laurent.opprecht@unige.ch</email>
-				<company>Université de Genève</company>
+				<name>Els Van Keymeuoralen</name>
+				<email>els.vankeymeulen@kahosl.be</email>
+				<company>KaHo Sint-Lieven Gent</company>
+			</authoµr>
+			<author>
+				<name>Philip Vanloo</name>
+				<email>philip.vanloo@kahosl.be</email>
+				<company>KaHo Sint-Lieven Gent</company>
 			</author>
 		</authors>
-		<version>2.1.0</version>
+		<version>1.0</version>
 		<cycle>
 			<phase>general_availability</phase>
 			<realm>main</realm>
 		</cycle>
-		<filename>pool/main/external_repository_managers/f/fedora/fedora-2.1.0.zip</filename>
+		<filename>/</filename>
 		<size></size>
 		<md5></md5>
 		<sha1></sha1>
 		<sha256></sha256>
 		<sha512></sha512>
 		<tagline></tagline>
-		<description>Allow users to browse, manage and use Fedora Commons objects in Chamilo 2</description>
+		<description>Allow users to browse, manage and use Alfresco objects in Chamilo 2</description>
 		<homepage></homepage>
 		<dependencies>
 			<server>

@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<application name="fedora">
+<application name="alfresco">
     <settings>
         <category name="credentials">
-            <setting name="Url" field="text" default="https://domain_name/fedora">
+            <setting name="Url" field="text" default="https://domain_name/alfresco">
                 <validations>
                     <validation rule="required" message="ThisFieldIsRequired" />
                 </validations>
             </setting>
             <setting name="Api" field="select" default="">
                 <options type="static">
-                    <option name="Fedora" value="" />
+                    <option name="alfresco" value="" />
                     <option name="Unige" value="unige" />
                 </options>
                 <validations>
@@ -17,7 +17,7 @@
                 </validations>
             </setting>
 			
-            <setting name="ContentAccessUrl" field="text" default="https://localhost/fedora/objects/$pid/datastreams/$dsId/content">
+            <setting name="ContentAccessUrl" field="text" default="https://localhost/alfresco/objects/$pid/datastreams/$dsId/content">
             </setting>
 
             <setting name="ClientCertificateFile" field="text" default="">
@@ -41,7 +41,7 @@
             <setting name="TargetCaFile" field="text" default="">
             </setting>
 
-            <setting name="Login" field="text" default="fedoraAdmin">
+            <setting name="Login" field="text" default="alfrescoAdmin">
             </setting>
 
             <setting name="Password" field="password" default="">
