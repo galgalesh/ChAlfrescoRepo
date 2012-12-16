@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<packages>
+	<package>
+		<name>Alfresco</name>
+		<code>alfresco</code>
+		<context>common\extensions\external_repository_manager\implementation\alfresco</context>
+		<section>external_repository_manager</section>
+		<category>document</category>
+		<authors>
+			<author>
+				<name>Merlijn Sebrechts</name>
+				<email>merlijn.sebrechts@gmail.com</email>
+				<company>KAHO Sint Lieven</company>
+			</author>
+			<author>
+				<name>Philip Vanloo</name>
+				<email>philip.vanloo@kahosl.be</email>
+				<company>KAHO Sint Lieven</company>
+			</author>
+			<author>
+				<name>Els Van Keymeulen</name>
+				<email>Els.VanKeymeulen@kahosl.be</email>
+				<company>KAHO Sint Lieven</company>
+			</author>
+		</authors>
+		<version>0.1</version>
+		<cycle>
+			<phase>beta</phase>
+			<realm>main</realm>
+		</cycle>
+		<filename>pool/main/external_repository_managers/a/alfresco/alfresco0.1.zip</filename>
+		<size></size>
+		<md5></md5>
+		<sha1></sha1>
+		<sha256></sha256>
+		<sha512></sha512>
+		<tagline></tagline>
+		<description>Allow users to browse, manage and use Alfresco objects in Chamilo 2</description>
+		<homepage></homepage>
+		<dependencies>
+			<server>
+				<dependency>
+					<id>php</id>
+					<version type="4">5.3.0</version>
+					<severity>1</severity>
+				</dependency>
+			</server>
+			<content_objects>
+				<dependency>
+		  			<id>document</id>
+		  			<version type="4">2.1.0</version>
+		  			<severity>1</severity>
+				</dependency>
+			</content_objects>
+			<library>
+				<dependency>
+		  			<id>common</id>
+		  			<version type="4">2.1.0</version>
+		  			<severity>1</severity>
+				</dependency>
+			</library>
+			<extension>
+				<dependency>
+		  			<id>external_repository_manager</id>
+		  			<version type="4">2.1.0</version>
+		  			<severity>1</severity>
+				</dependency>
+			</extension>
+			<core>
+				<dependency>
+		  			<id>user</id>
+		  			<version type="4">2.1.0</version>
+		  			<severity>1</severity>
+				</dependency>
+			</core>
+		</dependencies>
+		<extra>
+			<multiple>1</multiple>
+		</extra>
+	</package>
+</packages>
