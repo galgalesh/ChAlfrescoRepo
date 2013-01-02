@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<application name="flickr">
+<application name="alfresco">
 	<settings>
 		<category name="credentials">
 			<setting name="key" field="text" default="">
