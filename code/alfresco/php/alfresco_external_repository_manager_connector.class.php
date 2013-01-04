@@ -26,5 +26,28 @@ require_once dirname(__FILE__) . '/alfresco_external_repository_object.class.php
 class AlfrescoExternalRepositoryManagerConnector extends ExternalRepositoryManagerConnector
 {
 	
+    /**
+     * @var string
+     */
+    private $username;
+
+    /**
+     * @var string
+     */
+    private $password;
+
+	
+	function __construct($external_repository_instance)
+    {
+        parent :: __construct($external_repository_instance);
+
+        $this->username = ExternalSetting :: get('username', $this->get_external_repository_instance_id());
+        $this->password = ExternalSetting :: get('password', $this->get_external_repository_instance_id());
+		
+		echo 'WORKS';
+  
+
+      
+    }
 }
 ?>
