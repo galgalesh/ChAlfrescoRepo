@@ -54,13 +54,34 @@ class AlfrescoExternalRepositoryManager extends ExternalRepositoryManager
      */
     function validate_settings($external_repository)
     {
-        $login = ExternalSetting :: get('login', $external_repository->get_id());
+        $username = ExternalSetting :: get('username', $external_repository->get_id());
         $password = ExternalSetting :: get('password', $external_repository->get_id());
 
-        if (! $login || ! $password)
+        if (! $username || ! $password)
         {
             return false;
         }
+		
+		// make ticket 	
+		$data = array("username" => $username, "password" => $password);
+		json_encode($data);	
+		
+								
+		$ch = curl_init('http://vvs.ac/alfresco/service/api/login');                                                                      
+		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");                                                                     
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $data);                                                                  
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);                                                                      
+			curl_setopt($ch, CURLOPT_HTTPHEADER, array(                                                                          
+			    'Content-Type: application/json',                                                                                
+			    'Content-Length: ' . strlen($data))                                                                       
+		);                                                                                                                   
+			 
+		$result = curl_exec($ch);
+		
+		echo($username);
+                echo($password);
+		
+		
         return true;
     }
 
@@ -161,5 +182,7 @@ class AlfrescoExternalRepositoryManager extends ExternalRepositoryManager
     {
         return self :: PARAM_EXTERNAL_REPOSITORY_MANAGER_ACTION;
     }
+	
+	
 }
 ?>
