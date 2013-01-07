@@ -54,13 +54,6 @@ class AlfrescoExternalRepositoryManager extends ExternalRepositoryManager
      */
     function validate_settings($external_repository)
     {
-    	$username = ExternalSetting :: get('username', $external_repository->get_id());
-        $password = ExternalSetting :: get('password', $external_repository->get_id());
-
-        if (! $username || ! $password)
-        {
-            return false;
-        }
         return true;
     }
 
@@ -92,21 +85,13 @@ class AlfrescoExternalRepositoryManager extends ExternalRepositoryManager
     {
         $menu_items = array();
 
-        $line = array();
-        $line['title'] = '';
-        $line['class'] = 'divider';
-
-        $general = array();
-        $general['title'] = Translation :: get('Sites');
-        $general['url'] = $this->get_url(array(self :: PARAM_FEED_TYPE => self :: FEED_TYPE_GENERAL), array(ActionBarSearchForm :: PARAM_SIMPLE_SEARCH_QUERY));
-        $general['class'] = 'home';
-        $menu_items[] = $general;
-
-        $menu_items[] = $line;
-
-        $folders = $this->get_external_repository_manager_connector()->retrieve_folders($this->get_url(array(self :: PARAM_FOLDER => '__PLACEHOLDER__')));
-        $menu_items = array_merge($menu_items, $folders);       
-        
+        $site_root = array();
+        $site_root['title'] = Translation :: get('AllSites');
+        $site_root['url'] = '#';
+        $site_root['class'] = 'external_instance';
+        $site_root['sub'] = $this->get_external_repository_manager_connector()->retrieve_sites($this->get_url(array(self :: PARAM_FOLDER => '__PLACEHOLDER__')));
+ 
+        $menu_items[] = $site_root;
         return $menu_items;
     }
 

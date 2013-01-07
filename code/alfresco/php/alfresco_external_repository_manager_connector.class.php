@@ -7,6 +7,7 @@ use common\libraries\Redirect;
 use common\libraries\ActionBarSearchForm;
 use common\libraries\ArrayResultSet;
 use common\libraries\Session;
+use common\libraries\Translation;
 
 use repository\ExternalUserSetting;
 use repository\ExternalSetting;
@@ -24,51 +25,109 @@ require_once dirname(__FILE__) . '/alfresco_external_repository_object.class.php
  */
 
 class AlfrescoExternalRepositoryManagerConnector extends ExternalRepositoryManagerConnector
-{
-
-    // Authentication string
-    private $authenticationString;
-
-    // Ticket
-    private $ticket;
+{   
+    private $password;
+    private $username;
     
-	
     function __construct($external_repository_instance)
     {
-        parent::__construct($external_repository_instance);
-
-        // Get user name and password
-        $username = ExternalSetting :: get('username', $this->get_external_repository_instance_id());
-        $password = ExternalSetting :: get('password', $this->get_external_repository_instance_id());
-	
-        // Make authentication string
-        $this->authenticationString = 'Basic  ' . base64_encode($username . ':' . $password);
-        
-        // Get ticket
-        $data = array("username" => $username, "password" => $password);
-        json_encode($data);	
-
-        $ch = curl_init('http://vvs.ac/alfresco/service/api/login');                                                                      
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");                                                                     
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);                                                                  
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);                                                                      
-                curl_setopt($ch, CURLOPT_HTTPHEADER, array(                                                                          
-                    'Content-Type: application/json',                                                                                
-                    'Content-Length: ' . strlen($data))                                                                       
-        );                                                                                                                   
-
-        $result = json_decode(curl_exec($ch));
-        curl_close($ch);
-        
-        echo $result;
+        parent::__construct($external_repository_instance);       
     }	
+    
+    function login() {
+    
+    }
     
     function retrieve_external_repository_object($id) {
     	
     }
 
+    function retrieve_sites($siteXYZ)
+    {
+        // Array which holds the sites found for the user
+        $sub_sites = array();
+        
+        // Get sites
+        // Encode username:password
+        
+        $this->username = "username";
+        $this->username = "password";
+        
+        $encoded = base64_encode($this->username . ':' . $this->password);
+        // curl init webapi
+        $ch = curl_init('https://intern.vvs.ac/alfresco/service/api/people/' . $this->username . '/sites'); 
+        
+        //
+        // WARNING: This would prevent curl from detecting a 'man in the middle' attack
+        // FIX: Get certificate from VVS
+        //
+        curl_setopt ($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, 0); 
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        // Set headers
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(  
+            'Authorization: Basic ' . $encoded,
+            'WWW-Authenticate: Basic realm="Alfresco"',
+            'Host: intern.vvs.ac'));     
+        
+        // Execute
+        $result = curl_exec($ch);
+       
+        // 405 NOT ALLOWED
+        // 200 ALL OWKEY
+        // 302 AUTHORIZATION ERRUR      
+        $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        
+        if ($http_status == 403 || $http_status == 302) {
+            
+        }
+        
+        else if ($http_status == 200) {
 
+            // Decode result
+            $decode = json_decode($result);   
+                       
+            // We will store every site that the user has access to here
+            $sub_sites = array();
+        
+            // Iterate over all the decoded JSON
+            foreach ($decode as $site) {
+                $sub_site = array();
+                $sub_site['title'] = $site->shortName;
+                $sub_site['url'] = $site->shortName;
+                $sub_site['class'] = 'external_instance';
+                $sub_sites[] = $sub_site;
+                
+            }
+        }
+        // Close handle
+        curl_close($ch);
+        
+        return $sub_sites;
+    }
 
+    function get_folder_tree($index, $folders, $folder_url)
+    {
+        $items = array();
+        foreach ($folders[$index] as $child)
+        {
+            $sub_site = array();
+            $sub_site['title'] = $child->getTitle()->getText();
+            $sub_site['url'] = str_replace('__PLACEHOLDER__', $child->getResourceId()->getId(), $folder_url);
+            $sub_site['class'] = 'category';
+
+            $children = $this->get_folder_tree($child->getResourceId()->getId(), $folders, $folder_url);
+
+            if (count($children) > 0)
+            {
+                $sub_site['sub'] = $children;
+            }
+
+            $items[] = $sub_site;
+        }
+        return $items;
+    }
+    
     /**
      * @param mixed $condition
      * @param ObjectTableOrder $order_property
@@ -113,6 +172,10 @@ class AlfrescoExternalRepositoryManagerConnector extends ExternalRepositoryManag
      */
     static function translate_search_query($query) {
     	
+    }
+    
+    function validate_settings() {
+        
     }
 	
 		
