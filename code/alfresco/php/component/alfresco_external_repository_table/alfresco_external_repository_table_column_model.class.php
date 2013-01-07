@@ -21,6 +21,9 @@ require_once Path::get_common_libraries_class_path() . '/html/table/object_table
 class AlfrescoExternalRepositoryTableColumnModel extends ObjectTableColumnModel
 {
     const DEFAULT_NAME = 'alfresco_external_repository_table_column_model';
+    const FILENAME = "Bestandsnaam";
+    const MORE = "Meer";
+    
     /**
      * The tables modification column
      */
@@ -40,12 +43,8 @@ class AlfrescoExternalRepositoryTableColumnModel extends ObjectTableColumnModel
     private static function get_default_columns()
     {
         $columns = array();
-       // $columns[] = new ObjectTableColumn(ExternalRepositoryObject::PROPERTY_TYPE, false);
-        //$columns[] = new ObjectTableColumn('PROPERTY_TITLE', true);
-       // $columns[] = new ObjectTableColumn(ExternalRepositoryObject::PROPERTY_DESCRIPTION);
-       // $columns[] = new ObjectTableColumn('PROPERTY_CREATED', true);
-        $columns[] = new ObjectTableColumn('Bestandsnaam', true);
-        //$columns[] = new ObjectTableColumn(ExternalRepositoryObject::PROPERTY_DESCRIPTION, false);
+        $columns[] = new ObjectTableColumn(AlfrescoExternalRepositoryObject::PROPERTY_TITLE, true);
+        $columns[] = new ObjectTableColumn(AlfrescoExternalRepositoryObject::EXTRA);
         return $columns;
     }
 

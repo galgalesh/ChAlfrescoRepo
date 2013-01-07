@@ -37,22 +37,22 @@ class AlfrescoExternalRepositoryTableCellRenderer extends DefaultExternalReposit
 
     // Inherited
     function render_cell($column, $external_object)
-    {/*
-        if ($column === FlickrExternalRepositoryTableColumnModel :: get_modification_column())
+    {   
+        if ($column === AlfrescoExternalRepositoryTableColumnModel :: get_modification_column())
         {
             return $this->get_modification_links($external_object);
         }
 
         switch ($column->get_name())
         {
-            case ExternalRepositoryObject :: PROPERTY_TITLE :
-                $title = parent::render_cell($column, $external_object);
+            case ExternalRepositoryObject::PROPERTY_TITLE; 
+                $title = parent :: render_cell($column, $external_object);
                 $title_short = Utilities :: truncate_string($title, 50, false);
-                return '<a href="' . htmlentities($this->browser->get_external_repository_object_viewing_url($external_object)) . '" title="' . $title . '">' . $title_short . '</a>';
-            case FlickrExternalRepositoryObject :: PROPERTY_LICENSE :
-                return $external_object->get_license_icon();
+                return $title; //'<a href="' . htmlentities($this->browser->get_external_repository_object_viewing_url($external_object)) . '" title="' . $title . '">' . $title_short . '</a>';
+            case AlfrescoExternalRepositoryObject::EXTRA:
+                return "testengExtra";
         }
-        return parent::render_cell($column, $external_object);*/
+        return parent::render_cell($column, $external_object);
     }
 
     /**
@@ -62,10 +62,10 @@ class AlfrescoExternalRepositoryTableCellRenderer extends DefaultExternalReposit
      * @return string A HTML representation of the action links
      */
     private function get_modification_links($external_repository_object)
-    {/*
+    {
         $toolbar = new Toolbar();
         $toolbar->add_items($this->browser->get_external_repository_object_actions($external_repository_object));
-        return $toolbar->as_html();*/
+        return $toolbar->as_html();
     }
 }
 ?>

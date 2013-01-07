@@ -54,34 +54,13 @@ class AlfrescoExternalRepositoryManager extends ExternalRepositoryManager
      */
     function validate_settings($external_repository)
     {
-        $username = ExternalSetting :: get('username', $external_repository->get_id());
+    	$username = ExternalSetting :: get('username', $external_repository->get_id());
         $password = ExternalSetting :: get('password', $external_repository->get_id());
 
         if (! $username || ! $password)
         {
             return false;
         }
-		
-		// make ticket 	
-		$data = array("username" => $username, "password" => $password);
-		json_encode($data);	
-		
-								
-		$ch = curl_init('http://vvs.ac/alfresco/service/api/login');                                                                      
-		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");                                                                     
-		curl_setopt($ch, CURLOPT_POSTFIELDS, $data);                                                                  
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);                                                                      
-			curl_setopt($ch, CURLOPT_HTTPHEADER, array(                                                                          
-			    'Content-Type: application/json',                                                                                
-			    'Content-Length: ' . strlen($data))                                                                       
-		);                                                                                                                   
-			 
-		$result = curl_exec($ch);
-		
-		echo($username);
-                echo($password);
-		
-		
         return true;
     }
 
@@ -113,12 +92,21 @@ class AlfrescoExternalRepositoryManager extends ExternalRepositoryManager
     {
         $menu_items = array();
 
+        $line = array();
+        $line['title'] = '';
+        $line['class'] = 'divider';
+
         $general = array();
-        $general['title'] = Translation :: get('Public');
+        $general['title'] = Translation :: get('Sites');
         $general['url'] = $this->get_url(array(self :: PARAM_FEED_TYPE => self :: FEED_TYPE_GENERAL), array(ActionBarSearchForm :: PARAM_SIMPLE_SEARCH_QUERY));
         $general['class'] = 'home';
         $menu_items[] = $general;
 
+        $menu_items[] = $line;
+
+        $folders = $this->get_external_repository_manager_connector()->retrieve_folders($this->get_url(array(self :: PARAM_FOLDER => '__PLACEHOLDER__')));
+        $menu_items = array_merge($menu_items, $folders);       
+        
         return $menu_items;
     }
 
