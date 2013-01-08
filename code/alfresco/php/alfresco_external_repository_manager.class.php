@@ -25,12 +25,8 @@ class AlfrescoExternalRepositoryManager extends ExternalRepositoryManager
 {
     const REPOSITORY_TYPE = 'alfresco';
 
-    const PARAM_FEED_TYPE = 'feed';
-
-    const FEED_TYPE_GENERAL = 1;
-    const FEED_TYPE_MOST_INTERESTING = 2;
-    const FEED_TYPE_MOST_RECENT = 3;
-    const FEED_TYPE_MY_PHOTOS = 4;
+    const PARAM_SITE = 'site';
+    const PARAM_FOLDER = 'folder';
 
     /**
      * @param Application $application
@@ -38,7 +34,7 @@ class AlfrescoExternalRepositoryManager extends ExternalRepositoryManager
     function __construct($external_repository, $application)
     {
         parent :: __construct($external_repository, $application);
-        $this->set_parameter(self :: PARAM_FEED_TYPE, Request :: get(self :: PARAM_FEED_TYPE));
+        //$this->set_parameter(self :: PARAM_FEED_TYPE, Request :: get(self :: PARAM_FEED_TYPE));
     }
 
     /* (non-PHPdoc)
@@ -87,10 +83,17 @@ class AlfrescoExternalRepositoryManager extends ExternalRepositoryManager
 
         $site_root = array();
         $site_root['title'] = Translation :: get('AllSites');
-        $site_root['url'] = '#';
+        $site_root['url'] = $this->get_url(array(self::PARAM_SITE => null));
         $site_root['class'] = 'external_instance';
-        $site_root['sub'] = $this->get_external_repository_manager_connector()->retrieve_sites($this->get_url(array(self :: PARAM_FOLDER => '__PLACEHOLDER__')));
+        
+        $sub_sites = $this->get_external_repository_manager_connector()->retrieve_sites($this->get_url(array(self :: PARAM_FOLDER => '__PLACEHOLDER__')));
  
+        for ($i = 0; $i < count($sub_sites); $i++) {
+            $sub_sites[$i]['url'] = $this->get_url(array(self::PARAM_SITE => $sub_sites[$i]['url']));
+         
+        }
+
+        $site_root['sub'] = $sub_sites;
         $menu_items[] = $site_root;
         return $menu_items;
     }

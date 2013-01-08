@@ -9,6 +9,7 @@ use common\libraries\ArrayResultSet;
 use common\libraries\Session;
 use common\libraries\Translation;
 
+
 use repository\ExternalUserSetting;
 use repository\ExternalSetting;
 use repository\RepositoryDataManager;
@@ -19,6 +20,9 @@ use common\extensions\external_repository_manager\ExternalRepositoryObject;
 
 require_once dirname(__FILE__) . '/alfresco_external_repository_object.class.php';
 
+use SimplePie;
+require_once Path :: get_plugin_path(__NAMESPACE__) . 'SimplePie/autoloader.php';
+
 /**
  * @author Merlijn Sebrechts
  *
@@ -26,36 +30,37 @@ require_once dirname(__FILE__) . '/alfresco_external_repository_object.class.php
 
 class AlfrescoExternalRepositoryManagerConnector extends ExternalRepositoryManagerConnector
 {   
-    private $password;
     private $username;
+    private $password;
+    private $encoded;
+    private $ok;
+    
     
     function __construct($external_repository_instance)
     {
-        parent::__construct($external_repository_instance);       
+        parent::__construct($external_repository_instance);   
+        $this->username = ExternalSetting :: get('username', $this->get_external_repository_instance_id());
+        $this->password = ExternalSetting :: get('password', $this->get_external_repository_instance_id());
+        $this->encoded = base64_encode($this->username . ':' . $this->password);
     }	
     
-    function login() {
-    
-    }
-    
     function retrieve_external_repository_object($id) {
-    	
+        // TODO
     }
 
-    function retrieve_sites($siteXYZ)
+    function retrieve_sites($current_site, $current_folder)
     {
+        
         // Array which holds the sites found for the user
         $sub_sites = array();
         
         // Get sites
         // Encode username:password
-        
-        $this->username = "username";
-        $this->username = "password";
-        
+               
         $encoded = base64_encode($this->username . ':' . $this->password);
+        
         // curl init webapi
-        $ch = curl_init('https://intern.vvs.ac/alfresco/service/api/people/' . $this->username . '/sites'); 
+        $ch = curl_init('http://intern.vvs.ac/alfresco/service/api/people/' . $this->username . '/sites'); 
         
         //
         // WARNING: This would prevent curl from detecting a 'man in the middle' attack
@@ -73,12 +78,14 @@ class AlfrescoExternalRepositoryManagerConnector extends ExternalRepositoryManag
         // Execute
         $result = curl_exec($ch);
        
-        // 405 NOT ALLOWED
-        // 200 ALL OWKEY
-        // 302 AUTHORIZATION ERRUR      
+        
+        // 200 All ok
+        // 302 Found but something wrong    
+        // 401 Unauthorized
+        // 405 Method Not Allowed
         $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         
-        if ($http_status == 403 || $http_status == 302) {
+        if ($http_status == 302 || $http_status == 401 || $http_status == 402) {
             
         }
         
@@ -88,44 +95,106 @@ class AlfrescoExternalRepositoryManagerConnector extends ExternalRepositoryManag
             $decode = json_decode($result);   
                        
             // We will store every site that the user has access to here
-            $sub_sites = array();
+            $sites = array();
         
             // Iterate over all the decoded JSON
             foreach ($decode as $site) {
-                $sub_site = array();
-                $sub_site['title'] = $site->shortName;
-                $sub_site['url'] = $site->shortName;
-                $sub_site['class'] = 'external_instance';
-                $sub_sites[] = $sub_site;
                 
+                // Array which holds the site details
+                $sub_site = array();       
+                
+                // Title
+                $sub_site['title'] = $site->shortName;
+                
+                // URL (later gets modified)
+                $sub_site['url'] = $site->shortName;
+                
+                // Class (icon)
+                $sub_site['class'] = 'external_instance';
+                
+                // Subfolders
+                $sub_folders = $this->get_folder_tree(end(explode("/", $site->node)));            
+       
+                $sub_site['sub'] = $sub_folders;
+                
+                // Put the site in the sites array
+                $sites[] = $sub_site;
             }
         }
         // Close handle
         curl_close($ch);
         
-        return $sub_sites;
+        return $sites;
     }
 
-    function get_folder_tree($index, $folders, $folder_url)
+    function get_folder_tree($id)
     {
-        $items = array();
-        foreach ($folders[$index] as $child)
-        {
-            $sub_site = array();
-            $sub_site['title'] = $child->getTitle()->getText();
-            $sub_site['url'] = str_replace('__PLACEHOLDER__', $child->getResourceId()->getId(), $folder_url);
-            $sub_site['class'] = 'category';
+        
+        if ($id != '7180fc5a-daf6-47ee-8910-015689d15794' && !$ok) return null;
+        $ok = true;
+        
+        // curl init webapi
+        $ch = curl_init('http://intern.vvs.ac/alfresco/service/api/node/workspace/SpacesStore/' . $id . '/descendants'); 
+        
+        //
+        // WARNING: This would prevent curl from detecting a 'man in the middle' attack
+        // FIX: Get certificate from VVS
+        //
+        curl_setopt ($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, 0); 
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        // Set headers
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(  
+            'Authorization: Basic ' . $this->encoded,
+            'WWW-Authenticate: Basic realm="Alfresco"',
+            'Host: intern.vvs.ac'));     
+        
+        // Execute
+        $data = curl_exec($ch);
+        
+        curl_close($ch);
 
-            $children = $this->get_folder_tree($child->getResourceId()->getId(), $folders, $folder_url);
+        $xml = simplexml_load_string($data);
 
-            if (count($children) > 0)
+        $entry_is_folder = false;
+        $nodes = array();
+        
+        foreach ($xml->entry as $entry) {
+            
+            foreach ($entry->link as $link) 
             {
-                $sub_site['sub'] = $children;
+                if ($link['rel'] == 'describedby') {               
+                    if (end(explode('/', $link['href'])) == 'cmis:folder') {
+                        $entry_is_folder = true;
+                        break;
+                    }                
+                }
             }
-
-            $items[] = $sub_site;
+            
+            if ($entry_is_folder) {
+                $entry_is_folder = false;
+                
+                foreach ($entry->link as $link) {
+                    if ($link['rel'] == 'self') {
+                        
+                        $node = array();
+                        
+                        $node['title'] = ($entry->title[0] == 'documentLibrary') ? Translation :: get('DocumentLibrary') : (string)$entry->title[0];
+                        $node['url'] = end(explode('/', $link['href']));
+                        $node['class'] = 'external_instance';
+                        $node['sub'] = $this->get_folder_tree($node['url']);
+                        
+                        var_dump($node);
+                        
+                        $nodes[] = $node;       
+                        break;
+                    }
+                }
+            }
         }
-        return $items;
+        
+        //var_dump($nodes);
+        return (count($nodes) > 0) ? $nodes : null;
     }
     
     /**
@@ -135,6 +204,9 @@ class AlfrescoExternalRepositoryManagerConnector extends ExternalRepositoryManag
      * @param int $count
      */
     function retrieve_external_repository_objects($condition, $order_property, $offset, $count) {
+        
+        echo 'retrieve_external_repository_objects';
+        
         $arr = array();
         
         for ($i = 0; $i < 100; $i++) {
@@ -177,6 +249,50 @@ class AlfrescoExternalRepositoryManagerConnector extends ExternalRepositoryManag
     function validate_settings() {
         
     }
+    
+    	/**
+        * Dumps the output of a variable in a more readable manner
+        *
+        * @return string
+        * @param bool[optional] $echo
+        * @param bool[optional] $exit
+        */
+        public static function dump($var, $echo = true, $exit = true)
+        {
+
+            // fetch var
+            ob_start();
+            var_dump($var);
+            $output = ob_get_clean();
+
+            // neaten the output
+            $output = preg_replace("/\]\=\>\n(\s+)/m", "] => ", $output);
+
+            // print
+            if($echo) echo '<pre>'. htmlentities($output, ENT_QUOTES) .'</pre>';
+
+            // return
+            if(!$exit) return $output;
+            exit;
+
+        }
+        
+        public function outputToFile($data) {
+        // Open another output buffering context
+          ob_start();
+
+          print_r($data);
+
+          $_output = ob_get_contents();
+          // Destroy the context so that Laravel's none the wiser
+          ob_end_clean();
+
+          $_fp = fopen("C:/tmp/myfile2.txt", "w");
+          fwrite($_fp, $_output);
+          fclose($_fp);
+          // Remove awkward traces
+          unset($_fp, $_output);
+        }
 	
 		
 	
