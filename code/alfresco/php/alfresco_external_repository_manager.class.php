@@ -25,8 +25,7 @@ class AlfrescoExternalRepositoryManager extends ExternalRepositoryManager
 {
     const REPOSITORY_TYPE = 'alfresco';
 
-    const PARAM_SITE = 'site';
-    const PARAM_FOLDER = 'folder';
+    const PARAM_UUID = 'uuid';
 
     /**
      * @param Application $application
@@ -83,8 +82,10 @@ class AlfrescoExternalRepositoryManager extends ExternalRepositoryManager
 
         $site_root = array();
         $site_root['title'] = Translation :: get('AllSites');
-        $site_root['url'] = $this->get_url(array(self::PARAM_SITE => null));
+        $site_root['url'] = $this->get_url(array(self::PARAM_UUID => "null"));
         $site_root['class'] = 'external_instance';
+        
+        var_dump($this->get_url());
         
         $sub_sites = $this->get_external_repository_manager_connector()->retrieve_sites($this->get_url(array(self :: PARAM_FOLDER => '__PLACEHOLDER__')));
  

@@ -32,8 +32,7 @@ class AlfrescoExternalRepositoryManagerConnector extends ExternalRepositoryManag
 {   
     private $username;
     private $password;
-    private $encoded;
-    private $ok;
+    private $authorization_string;
     
     
     function __construct($external_repository_instance)
@@ -41,7 +40,7 @@ class AlfrescoExternalRepositoryManagerConnector extends ExternalRepositoryManag
         parent::__construct($external_repository_instance);   
         $this->username = ExternalSetting :: get('username', $this->get_external_repository_instance_id());
         $this->password = ExternalSetting :: get('password', $this->get_external_repository_instance_id());
-        $this->encoded = base64_encode($this->username . ':' . $this->password);
+        $this->authorization_string = base64_encode($this->username . ':' . $this->password);
     }	
     
     function retrieve_external_repository_object($id) {
@@ -55,12 +54,13 @@ class AlfrescoExternalRepositoryManagerConnector extends ExternalRepositoryManag
         $sub_sites = array();
         
         // Get sites
-        // Encode username:password
-               
-        $encoded = base64_encode($this->username . ':' . $this->password);
+        // 
+
+        // Encode username:password               
+        $authorization_string = base64_encode($this->username . ':' . $this->password);
         
         // curl init webapi
-        $ch = curl_init('http://intern.vvs.ac/alfresco/service/api/people/' . $this->username . '/sites'); 
+        $ch = curl_init('https://intern.vvs.ac/alfresco/service/api/people/' . $this->username . '/sites'); 
         
         //
         // WARNING: This would prevent curl from detecting a 'man in the middle' attack
@@ -71,7 +71,7 @@ class AlfrescoExternalRepositoryManagerConnector extends ExternalRepositoryManag
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         // Set headers
         curl_setopt($ch, CURLOPT_HTTPHEADER, array(  
-            'Authorization: Basic ' . $encoded,
+            'Authorization: Basic ' . $authorization_string,
             'WWW-Authenticate: Basic realm="Alfresco"',
             'Host: intern.vvs.ac'));     
         
@@ -114,7 +114,7 @@ class AlfrescoExternalRepositoryManagerConnector extends ExternalRepositoryManag
                 
                 // Subfolders
                 $sub_folders = $this->get_folder_tree(end(explode("/", $site->node)));            
-       
+                
                 $sub_site['sub'] = $sub_folders;
                 
                 // Put the site in the sites array
@@ -129,13 +129,10 @@ class AlfrescoExternalRepositoryManagerConnector extends ExternalRepositoryManag
 
     function get_folder_tree($id)
     {
-        
-        if ($id != '7180fc5a-daf6-47ee-8910-015689d15794' && !$ok) return null;
-        $ok = true;
-        
+             
         // curl init webapi
-        $ch = curl_init('http://intern.vvs.ac/alfresco/service/api/node/workspace/SpacesStore/' . $id . '/descendants'); 
-        
+        $ch = curl_init('https://intern.vvs.ac/alfresco/service/api/node/workspace/SpacesStore/' . $id . '/tree');
+
         //
         // WARNING: This would prevent curl from detecting a 'man in the middle' attack
         // FIX: Get certificate from VVS
@@ -145,53 +142,37 @@ class AlfrescoExternalRepositoryManagerConnector extends ExternalRepositoryManag
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         // Set headers
         curl_setopt($ch, CURLOPT_HTTPHEADER, array(  
-            'Authorization: Basic ' . $this->encoded,
+            'Authorization: Basic ' . $this->authorization_string,
             'WWW-Authenticate: Basic realm="Alfresco"',
             'Host: intern.vvs.ac'));     
         
         // Execute
         $data = curl_exec($ch);
+
         
         curl_close($ch);
-
+        
+        
+        
         $xml = simplexml_load_string($data);
+        
 
-        $entry_is_folder = false;
         $nodes = array();
         
         foreach ($xml->entry as $entry) {
             
-            foreach ($entry->link as $link) 
-            {
-                if ($link['rel'] == 'describedby') {               
-                    if (end(explode('/', $link['href'])) == 'cmis:folder') {
-                        $entry_is_folder = true;
-                        break;
-                    }                
-                }
-            }
+            $id = end(explode(':', $entry->id));
             
-            if ($entry_is_folder) {
-                $entry_is_folder = false;
-                
-                foreach ($entry->link as $link) {
-                    if ($link['rel'] == 'self') {
-                        
-                        $node = array();
-                        
-                        $node['title'] = ($entry->title[0] == 'documentLibrary') ? Translation :: get('DocumentLibrary') : (string)$entry->title[0];
-                        $node['url'] = end(explode('/', $link['href']));
-                        $node['class'] = 'external_instance';
-                        $node['sub'] = $this->get_folder_tree($node['url']);
-                        
-                        var_dump($node);
-                        
-                        $nodes[] = $node;       
-                        break;
-                    }
-                }
-            }
+            $node = array();
+            
+            $node['title'] = ($entry->title[0] == 'documentLibrary') ? Translation :: get('DocumentLibrary') : (string)$entry->title[0];
+            $node['url'] = $id;
+            $node['class'] = 'category';
+            //$node['sub'] = $this->get_folder_tree($id);
+                       
+            $nodes[] = $node;       
         }
+   
         
         //var_dump($nodes);
         return (count($nodes) > 0) ? $nodes : null;
@@ -205,7 +186,35 @@ class AlfrescoExternalRepositoryManagerConnector extends ExternalRepositoryManag
      */
     function retrieve_external_repository_objects($condition, $order_property, $offset, $count) {
         
-        echo 'retrieve_external_repository_objects';
+        $uuid = Request :: get(AlfrescoExternalRepositoryManager::PARAM_UUID);
+
+        // curl init webapi
+        $ch = curl_init('https://intern.vvs.ac/alfresco/service/api/node/workspace/SpacesStore/' . $uuid . '/children?types=documents');
+
+        //
+        // WARNING: This would prevent curl from detecting a 'man in the middle' attack
+        // FIX: Get certificate from VVS
+        //
+        curl_setopt ($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, 0); 
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        // Set headers
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(  
+            'Authorization: Basic ' . $this->authorization_string,
+            'WWW-Authenticate: Basic realm="Alfresco"',
+            'Host: intern.vvs.ac'));     
+        
+        // Execute
+        $data = curl_exec($ch);
+
+        
+        curl_close($ch);
+        
+        $xml = simplexml_load_string($data);
+        
+        foreach ($xml->entry as $entry) {
+            var_dump($entry->title);
+        }
         
         $arr = array();
         
