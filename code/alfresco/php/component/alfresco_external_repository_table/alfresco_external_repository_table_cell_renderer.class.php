@@ -3,7 +3,6 @@ namespace common\extensions\external_repository_manager\implementation\alfresco;
 
 use common\extensions\external_repository_manager\DefaultExternalRepositoryObjectTableCellRenderer;
 use common\extensions\external_repository_manager\ExternalRepositoryObject;
-
 use common\libraries\Utilities;
 use common\libraries\Toolbar;
 
@@ -42,16 +41,14 @@ class AlfrescoExternalRepositoryTableCellRenderer extends DefaultExternalReposit
         {
             return $this->get_modification_links($external_object);
         }
-
+/*
         switch ($column->get_name())
         {
             case ExternalRepositoryObject::PROPERTY_TITLE; 
                 $title = parent :: render_cell($column, $external_object);
                 $title_short = Utilities :: truncate_string($title, 50, false);
                 return $title; //'<a href="' . htmlentities($this->browser->get_external_repository_object_viewing_url($external_object)) . '" title="' . $title . '">' . $title_short . '</a>';
-            case AlfrescoExternalRepositoryObject::EXTRA:
-                return "testengExtra";
-        }
+        }*/
         return parent::render_cell($column, $external_object);
     }
 

@@ -1,3 +1,6 @@
 TypeName = "Alfresco"
 AllSites = "Alle Sites"
 DocumentLibrary = "Documentenbibliotheek"
+AlfrescoUrl = "Alfresco URL"
+Actions = "Acties"
+ThisFieldIsRequired = "Dit veld is verplicht"

@@ -2,14 +2,19 @@
 <application name="alfresco">
 	<settings>
 		<category name="credentials">
-			<setting name="username" field="text" default="">
+			<setting name="username" field="text" default="admin">
 				<validations>
-					<validation rule="required" message="Gelieve uw gebruikernaam in te vullen" />
+					<validation rule="required" message="ThisFieldIsRequired" />
 				</validations>
 			</setting>
-			<setting name="password" field="text" default="">
+			<setting name="password" field="password" default="">
 				<validations>
-					<validation rule="required" message="Gelieve uw wachtwoord in te vullen" />
+					<validation rule="required" message="ThisFieldIsRequired" />
+				</validations>
+			</setting>
+                        <setting name="alfresco_url" field="text" default="http://localhost/alfresco">
+				<validations>
+					<validation rule="required" message="ThisFieldIsRequired" />
 				</validations>
 			</setting>
 		</category>

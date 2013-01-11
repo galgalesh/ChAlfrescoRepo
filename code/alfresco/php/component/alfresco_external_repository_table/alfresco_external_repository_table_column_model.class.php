@@ -1,12 +1,11 @@
 <?php
 namespace common\extensions\external_repository_manager\implementation\alfresco;
 
-use common\libraries\Path;
-use common\libraries\ObjectTableColumnModel;
 use common\libraries\ObjectTableColumn;
+use common\libraries\ObjectTableColumnModel;
+use common\libraries\Path;
 use common\libraries\StaticTableColumn;
-
-use common\extensions\external_repository_manager\ExternalRepositoryObject;
+use common\libraries\Translation;
 
 
 require_once Path::get_common_libraries_class_path() . '/html/table/object_table/object_table_column_model.class.php';
@@ -21,8 +20,6 @@ require_once Path::get_common_libraries_class_path() . '/html/table/object_table
 class AlfrescoExternalRepositoryTableColumnModel extends ObjectTableColumnModel
 {
     const DEFAULT_NAME = 'alfresco_external_repository_table_column_model';
-    const FILENAME = "Bestandsnaam";
-    const MORE = "Meer";
     
     /**
      * The tables modification column
@@ -36,15 +33,15 @@ class AlfrescoExternalRepositoryTableColumnModel extends ObjectTableColumnModel
     function __construct()
     {
         parent::__construct(self::get_default_columns(), 2, SORT_DESC);
-        //$this->set_default_order_column(1);
-        $this->add_column(self::get_modification_column());
     }
     
     private static function get_default_columns()
     {
         $columns = array();
         $columns[] = new ObjectTableColumn(AlfrescoExternalRepositoryObject::PROPERTY_TITLE, true);
-        $columns[] = new ObjectTableColumn(AlfrescoExternalRepositoryObject::EXTRA);
+        $columns[] = new ObjectTableColumn(AlfrescoExternalRepositoryObject::PROPERTY_CREATED, true);
+        $columns[] = new ObjectTableColumn(AlfrescoExternalRepositoryObject::PROPERTY_MODIFIED, true);
+        $columns[] = self::get_modification_column();
         return $columns;
     }
 
@@ -56,7 +53,7 @@ class AlfrescoExternalRepositoryTableColumnModel extends ObjectTableColumnModel
     {
         if (! isset(self::$modification_column))
         {
-            self::$modification_column = new StaticTableColumn('');
+            self::$modification_column = new StaticTableColumn(Translation::get('Actions'));
         }
         return self::$modification_column;
     }

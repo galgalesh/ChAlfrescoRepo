@@ -12,38 +12,40 @@ class AlfrescoExternalRepositoryObject extends ExternalRepositoryObject
 {
     const OBJECT_TYPE = 'alfresco';
     const FILE_NAME = 'Bestandsnaam';
-    const EXTRA = 'Extra';
     
-    private $filename;
-    private $type;
-    
-    
+    private $author;
 
     static function get_object_type()
     {
         return self :: OBJECT_TYPE;
+    } 
+    
+    function get_author() {
+        return $this->author;
     }
     
-    function get_filename() 
+    function set_author($author) {
+        $this->author = $author;
+    }
+    
+    function get_export_types()
     {
-        return $this->filename;
+        switch ($this->get_type())
+        {
+            case 'document' :
+                return array('pdf', 'odt', 'doc');
+                break;
+            case 'presentation' :
+                return array('pdf', 'ppt', 'swf');
+                break;
+            case 'spreadsheet' :
+                return array('pdf', 'ods', 'xls');
+                break;
+            case 'pdf' :
+                return array('pdf');
+                break;
+        }
     }
-    
-    function set_filename($filename) 
-    {
-        $this->filename = $filename;
-    }
-    
-    function get_type() 
-    {
-        return $this->type;
-    }
-    
-    function set_type($type) 
-    {
-        $this->type = $type;
-    }
-    
-    
+
 }
 ?>

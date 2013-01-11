@@ -1,20 +1,18 @@
 <?php
 namespace common\extensions\external_repository_manager\implementation\alfresco;
 
-use common\libraries\Path;
-use common\libraries\Request;
-use common\libraries\Translation;
-use common\libraries\ActionBarSearchForm;
-use common\libraries\PatternMatchCondition;
-use common\libraries\OrCondition;
-use common\libraries\Utilities;
-
-use common\extensions\external_repository_manager\ExternalRepositoryObjectRenderer;
 use common\extensions\external_repository_manager\ExternalRepositoryManager;
 use common\extensions\external_repository_manager\ExternalRepositoryObject;
-
-use repository\ExternalSetting;
+use common\libraries\Application;
+use common\libraries\OrCondition;
+use common\libraries\Path;
+use common\libraries\PatternMatchCondition;
+use common\libraries\Theme;
+use common\libraries\ToolbarItem;
+use common\libraries\Translation;
+use common\libraries\Utilities;
 use repository\content_object\document\Document;
+use repository\ExternalSetting;
 
 require_once dirname(__FILE__) . '/alfresco_external_repository_manager_connector.class.php';
 
@@ -26,6 +24,8 @@ class AlfrescoExternalRepositoryManager extends ExternalRepositoryManager
     const REPOSITORY_TYPE = 'alfresco';
 
     const PARAM_UUID = 'uuid';
+    const PARAM_SITE = 'site';
+    const PARAM_EXPORT_FORMAT = 'export_format';
 
     /**
      * @param Application $application
@@ -49,6 +49,16 @@ class AlfrescoExternalRepositoryManager extends ExternalRepositoryManager
      */
     function validate_settings($external_repository)
     {
+        $settings = array('alfresco_url', 'username', 'password');
+
+        foreach ($settings as $variable)
+        {
+                $value = ExternalSetting :: get($variable, $external_repository->get_id());
+                if (! $value)
+                {
+                        return false;
+                }
+        }
         return true;
     }
 
@@ -84,21 +94,61 @@ class AlfrescoExternalRepositoryManager extends ExternalRepositoryManager
         $site_root['title'] = Translation :: get('AllSites');
         $site_root['url'] = $this->get_url(array(self::PARAM_UUID => "null"));
         $site_root['class'] = 'external_instance';
+               
+        $sub_sites = $this->get_external_repository_manager_connector()->retrieve_sites();
         
-        var_dump($this->get_url());
-        
-        $sub_sites = $this->get_external_repository_manager_connector()->retrieve_sites($this->get_url(array(self :: PARAM_FOLDER => '__PLACEHOLDER__')));
- 
-        for ($i = 0; $i < count($sub_sites); $i++) {
-            $sub_sites[$i]['url'] = $this->get_url(array(self::PARAM_SITE => $sub_sites[$i]['url']));
-         
-        }
+        $main = $this->array_recursive_change_url($sub_sites);
 
-        $site_root['sub'] = $sub_sites;
+        $site_root['sub'] = $main;
         $menu_items[] = $site_root;
         return $menu_items;
     }
 
+    function array_recursive_change_url($array) {   
+        $main = $array;
+
+        // has subs
+        if (array_key_exists('sub', $main)) 
+        {
+            
+            if (!empty($main['sub'])) {
+                $subs = array();
+
+                foreach($main['sub'] as $sub) 
+                {
+                    $subs[] = $this->array_recursive_change_url($sub);
+                }
+
+                $main['sub'] = $subs;
+            }
+        }
+        
+        // has sites
+        elseif (!array_key_exists('title', $main))
+        {
+            $subs = array();
+            
+            foreach($main as $sub) 
+            {
+                $subs[] = $this->array_recursive_change_url($sub);
+            }
+            
+            $main = $subs;
+        }
+        
+        if (array_key_exists('url', $main)) {
+            
+            if (array_key_exists('url', $main)) {
+                
+            $main['url'] = $this->get_url(array(
+                self::PARAM_UUID => $main['url'][0], 
+                self::PARAM_SITE => $main['url'][1]));
+            }
+        }
+        
+        return $main;
+    }
+    
     /* (non-PHPdoc)
      * @see application/common/external_repository_manager/ExternalRepositoryManager#is_ready_to_be_used()
      */
@@ -120,6 +170,23 @@ class AlfrescoExternalRepositoryManager extends ExternalRepositoryManager
         }
 
         return new OrCondition($image_conditions);
+    }
+    
+    function get_external_repository_object_actions(AlfrescoExternalRepositoryObject $object)
+    {
+        $actions = parent :: get_external_repository_object_actions($object);
+        if (in_array(ExternalRepositoryManager :: ACTION_IMPORT_EXTERNAL_REPOSITORY, array_keys($actions)))
+        {
+            unset($actions[ExternalRepositoryManager :: ACTION_IMPORT_EXTERNAL_REPOSITORY]);
+            $export_types = $object->get_export_types();
+
+            foreach ($export_types as $export_type)
+            {
+                $actions[$export_type] = new ToolbarItem(Translation :: get('Import' . Utilities :: underscores_to_camelcase($export_type)), Theme :: get_image_path() . 'import/' . $export_type . '.png', $this->get_url(array(self :: PARAM_EXTERNAL_REPOSITORY_MANAGER_ACTION => self :: ACTION_IMPORT_EXTERNAL_REPOSITORY, self :: PARAM_EXTERNAL_REPOSITORY_ID => $object->get_id(), self :: PARAM_EXPORT_FORMAT => $export_type)), ToolbarItem :: DISPLAY_ICON);
+            }
+        }
+
+        return $actions;
     }
 
     /**
