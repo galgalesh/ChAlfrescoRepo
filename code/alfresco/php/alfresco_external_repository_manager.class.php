@@ -54,7 +54,7 @@ class AlfrescoExternalRepositoryManager extends ExternalRepositoryManager
         foreach ($settings as $variable)
         {
                 $value = ExternalSetting :: get($variable, $external_repository->get_id());
-                if (! $value)
+                if (!$value)
                 {
                         return false;
                 }

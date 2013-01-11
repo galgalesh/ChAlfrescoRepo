@@ -51,8 +51,7 @@ class AlfrescoExternalRepositoryManagerConnector extends ExternalRepositoryManag
         }	
     
     function retrieve_external_repository_object($id) {
-        reutrn 
-        <content type="application/vnd.openxmlformats-officedocument.presentationml.presentation" src="http://intern.vvs.ac:80/alfresco/service/cmis/s/workspace:SpacesStore/i/4b4c0a79-00fd-4c7d-b581-d48072f0cc80/content.pptx" xmlns="http://www.w3.org/2005/Atom" />
+        //TODO
     }
 
     function retrieve_sites()
@@ -68,9 +67,7 @@ class AlfrescoExternalRepositoryManagerConnector extends ExternalRepositoryManag
         // 401 Unauthorized
         // 405 Method Not Allowed
         $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        
-        echo $http_status;
-        
+                
         // Array which holds the sites found for the user
         $sites = array();
         
@@ -78,8 +75,13 @@ class AlfrescoExternalRepositoryManagerConnector extends ExternalRepositoryManag
         curl_close($ch);
         
         
-        if ($http_status == 302 || $http_status == 401 || $http_status == 402) {
+        if ($http_status == 302) {
             
+            echo 'Error: cannot access alfresco';
+        }
+        
+        else if ($http_status == 401 || $http_status == 402) {
+            echo 'Error: invalid credentials';
         }
         
         else if ($http_status == 200) {
@@ -208,15 +210,15 @@ class AlfrescoExternalRepositoryManagerConnector extends ExternalRepositoryManag
                 }
             }
         }
-        
+        /*
         if (!empty($topNode)) {
             $topNode['sub'] = $subNodes;
-            $siteNodes[] = $topNode;
+            $siteNodes = $topNode;
         }
-        
-        else {
-            $siteNodes[] = $subNodes;
-        }
+        */
+        //else
+            $siteNodes = $subNodes;
+        //
    
         
         //var_dump($nodes);
@@ -229,7 +231,7 @@ class AlfrescoExternalRepositoryManagerConnector extends ExternalRepositoryManag
 
         //
         // WARNING: This would prevent curl from detecting a 'man in the middle' attack
-        // FIX: Get certificate from VVS
+        // FIX: Get certificate
         // TODO : Ask if user wants HTTPS
         // TODO : Certificate?
         //
@@ -261,7 +263,7 @@ class AlfrescoExternalRepositoryManagerConnector extends ExternalRepositoryManag
     }
     
     function get_curl_handle_content($uuid) {
-        return $this->get_curl_handle('http://intern.vvs.ac:80/alfresco/service/cmis/s/workspace:SpacesStore/i/' . $uuid);
+        return $this->get_curl_handle($this->alfresco_url . '/service/cmis/s/workspace:SpacesStore/i/' . $uuid);
     }
     
     
@@ -369,57 +371,7 @@ class AlfrescoExternalRepositoryManagerConnector extends ExternalRepositoryManag
      */
     static function translate_search_query($query) {
     	
-    }
-    
-    function validate_settings() {
-        
-    }
-    
-    	/**
-        * Dumps the output of a variable in a more readable manner
-        *
-        * @return string
-        * @param bool[optional] $echo
-        * @param bool[optional] $exit
-        */
-        public static function dump($var, $echo = true, $exit = true)
-        {
-
-            // fetch var
-            ob_start();
-            var_dump($var);
-            $output = ob_get_clean();
-
-            // neaten the output
-            $output = preg_replace("/\]\=\>\n(\s+)/m", "] => ", $output);
-
-            // print
-            if($echo) echo '<pre>'. htmlentities($output, ENT_QUOTES) .'</pre>';
-
-            // return
-            if(!$exit) return $output;
-            exit;
-
-        }
-        
-        public function outputToFile($data) {
-        // Open another output buffering context
-          ob_start();
-
-          print_r($data);
-
-          $_output = ob_get_contents();
-          // Destroy the context so that Laravel's none the wiser
-          ob_end_clean();
-
-          $_fp = fopen("C:/tmp/myfile2.txt", "w");
-          fwrite($_fp, $_output);
-          fclose($_fp);
-          // Remove awkward traces
-          unset($_fp, $_output);
-        }
-	
-		
+    }	
 	
 }
 ?>
