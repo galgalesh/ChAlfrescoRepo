@@ -1,32 +1,6 @@
-ChAlfrescoRepo
+[ARCHIVED] Chamilo Alfresco external repository
 ==============
 
-An implementation of the chamilo 2 external repository to alfresco
+This repository contains a Chamilo 2 external repository connector to connect Chamilo to Alfresco. This code was written as part of a master thesis and is here for archival purposes only.
 
-***************************
-            TODO
-***************************
-***** ChAlfrescoRepo
-- make base module
-- make logboek
-- add view support
-- add get, put, delete support
-- 
-
-
-
-***** Drupal
-- formulieren
-	* layout
-	* "meer opties" bij vorming formulier
-	* verzenden naar email
-- afbeeldingen
-- "Dossiers" pagina
-- contact pagina
-- twitter configureren (pas als site live staat)
-- workshop
-
-
-***** Zwervende profielen
-- Windows 7 professional installeren
-- Zwervende profielen
+https://support.chamilo.org/issues/1826
